@@ -1,0 +1,7 @@
+<!-- 左侧栏 -->
+<div class="m-type-list">
+    <h4>文章分类</h4>
+    {{#each articleTypes}}
+        <p><a href="/search?type={{.}}">{{.}}</a></p>
+    {{/each}}
+</div>

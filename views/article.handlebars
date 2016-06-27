@@ -1,0 +1,25 @@
+<div class="m-article-content">
+    <h1>{{data.title}}</h1>
+    <p>作者: {{data.author}}&emsp;&emsp;时间: {{data.formatDate}}&emsp;&emsp;类型: {{data.articleType}}</p>
+    <p>文章分类: {{data.articleType}}</p>
+    <div id="articleContent"></div>
+    <textarea>{{data.content}}</textarea>
+</div>
+{{#section 'cssFiles'}}
+    <link rel="stylesheet" href="{{static '/vendor/markdown/monokai-sublime.css'}}"/>
+{{/section}}
+{{#section 'jsFiles'}}
+    <script src="{{static '/vendor/markdown/marked.js'}}"></script>
+    <script src="{{static '/vendor/markdown/highlight.js'}}"></script>
+{{/section}}
+{{#section 'jquery'}}
+    <script>
+        $(function () {
+            // markdown渲染以及代码高亮
+            marked($('textarea').val(), function (err, content) {
+                $('#articleContent').html(content);
+                hljs.initHighlighting();
+            });
+        });
+    </script>
+{{/section}}

@@ -1,0 +1,57 @@
+{{#if noResult}}
+    <div class="m-result">{{noResult}}</div>
+{{else}}
+    <div class="m-article">
+        <ul id="articleList">
+            {{#each data}}
+                <li>
+                    <a href="article/{{_id}}">
+                        <div>
+                            <h3>{{title}}</h3>
+                            <p>作者: {{author}}&emsp;&emsp;时间: {{formatDate}}&emsp;&emsp;类型: {{articleType}}</p>
+                            <p>文章分类: {{articleType}}</p>
+                            <p>{{description}}</p>
+                        </div>
+                    </a>
+                </li>
+            {{/each}}
+        </ul>
+        {{#ifCond data.length 9 '>'}}
+            <button class="btn btn-primary u-btn" id="btnLoadMore">加载更多</button>
+        {{/ifCond}}
+    </div>
+{{/if}}
+{{#section 'jquery'}}
+    <script>
+        var loadTimes = 1;
+        $('#btnLoadMore').on('click', function () {
+            var thisEl = $(this),
+                    a = $('<a>', {href: window.location}),
+                    params = decodeURIComponent(a.prop('search')).substr(1).split('=');
+            thisEl.text('加载ing...');
+            $.get('api/load-more-article/' + params[0] + '/' + params[1] + '/' + loadTimes, function (data) {
+                data.code == 1 ? $('#articleList').append(newArticleList(data.content)) : alert(0);
+                data.content.length < 5 ? thisEl.replaceWith('<p class="u-none-tips">没有文章咯</p>') : thisEl.text('加载更多');
+                loadTimes++;
+            }).fail(function () {
+                alert('服务器出现了问题- -#');
+                thisEl.text('加载更多');
+            });
+        });
+
+        function newArticleList(data) {
+            var r = data.map(function (el) {
+                var articleDate = new Date(el.date),
+                        formatDate = articleDate.getFullYear() + '-' + (articleDate.getMonth() + 1) + '-' + articleDate.getDate();
+                return '<li><a href="article/' + el._id
+                        + '"><div><h3>' + el.title
+                        + '</h3> <p>作者: ' + el.author
+                        + '&emsp;&emsp;时间: ' + formatDate
+                        + '&emsp;&emsp;类型: ' + el.articleType
+                        + '</p><p>' + el.description
+                        + '</p></div></a></li>';
+            });
+            return r.join('');
+        }
+    </script>
+{{/section}}

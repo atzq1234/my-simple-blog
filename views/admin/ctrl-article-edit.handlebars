@@ -1,0 +1,74 @@
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 m-article-publish" id="articlePublish">
+            <form action="/api/article-update/{{article._id}}" method="post">
+                <div class="form-group">
+                    <label for="title">标题</label>
+                    <input type="text" class="form-control" name="title" placeholder="标题" value="{{article.title}}" required/>
+                </div>
+                <div class="form-group">
+                    <label for="author">作者</label>
+                    <input type="text" class="form-control" name="author" placeholder="作者" value="{{article.author}}" required/>
+                </div>
+                <div class="form-group">
+                    <label for="date">时间</label>
+                    <input type="text" class="form-control" name="date" placeholder="时间" value="{{article.formatDate}}" required/>
+                </div>
+                <div class="form-group">
+                    <label for="description">文章描述</label>
+                    <input type="text" class="form-control" name="description" placeholder="文章描述" value="{{article.description}}" required/>
+                </div>
+                <div class="form-group">
+                    <label for="articleType">文章类别</label>
+                    <p>
+                        {{#each articleTypes}}
+                            <span>
+                                <button class="btn btn-default btn-article-type {{#ifCond . ../article.articleType '=='}}btn-danger{{/ifCond}}">{{.}}</button>
+                                <input type="radio" name="articleType" value="{{.}}" {{#ifCond . ../article.articleType '=='}}checked{{/ifCond}}/>
+                            </span>
+                        {{/each}}
+                    </p>
+                </div>
+                <div class="form-group">
+                    <label for="content">文章内容</label>
+                    <textarea name="content" id="articleContent" class="form-control" placeholder="文章内容" style="resize: none;" required>{{article.content}}</textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">提交修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{{#section 'cssFiles'}}
+    <link rel="stylesheet" href="{{static '/vendor/markdown/monokai-sublime.css'}}"/>
+    <link rel="stylesheet" href="{{static '/vendor/markdown/bootstrap-markdown-editor.css'}}"/>
+{{/section}}
+{{#section 'jsFiles'}}
+    <script src="{{static '/vendor/markdown/marked.js'}}"></script>
+    <script src="{{static '/vendor/markdown/highlight.js'}}"></script>
+    <script src="{{cloudflare '/ace/1.1.3/ace.js'}}"></script>
+    <script src="{{static '/vendor/markdown/bootstrap-markdown-editor.js'}}"></script>
+{{/section}}
+{{#section 'jquery'}}
+    <script>
+        $(function () {
+            // markdown编辑器
+            $('#articleContent').markdownEditor({
+                preview: true,
+                onPreview: function (content, callback) {
+                    callback( marked(content) );
+                    $('.md-preview pre code').each(function (i, el) {
+                        hljs.highlightBlock(el);
+                    });
+                }
+            });
+            // 选择文章类别
+            $('.btn-article-type').on('click', function (e) {
+                e.preventDefault();
+                $('.btn-article-type').removeClass('btn-danger');
+                $(this).addClass('btn-danger').siblings('input').click();
+            });
+        });
+    </script>
+{{/section}}

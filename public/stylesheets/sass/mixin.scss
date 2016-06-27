@@ -1,0 +1,174 @@
+//
+// 基本属性变量
+// ---------------------------------------------------------------------------------
+$base-font-size: 14px;
+$base-color: #800080;
+//
+// 外框与边距
+// ---------------------------------------------------------------------------------
+@mixin fn-width-height($width: auto, $height: auto) {
+    width: $width;
+    height: $height;
+}
+
+@mixin fn-width-height-bg($width: auto, $height: auto, $background-color: transparent){
+    width: $width;
+    height: $height;
+    background-color: $background-color;
+}
+
+@mixin fn-margin-all($top: 0, $right: 0, $bottom: 0, $left: 0) {
+    margin: {
+        top: $top;
+        right: $right;
+        bottom: $bottom;
+        left: $left;
+    }
+}
+
+@mixin fn-padding-all($top: 0, $right: 0, $bottom: 0, $left: 0) {
+    padding: {
+        top: $top;
+        right: $right;
+        bottom: $bottom;
+        left: $left;
+    }
+}
+
+@mixin fn-margin($margin: 0) {
+    margin: $margin;
+}
+
+@mixin fn-padding($padding: 0) {
+    padding: $padding;
+}
+
+@mixin fn-box($width: auto, $height: auto, $margin: 0, $padding: 0) {
+    @include fn-width-height($width, $height);
+    @include fn-margin($margin);
+    @include fn-padding($padding);
+}
+
+//
+// 字体与边框
+// ---------------------------------------------------------------------------------
+@mixin fn-font($font-size: $base-font-size, $color: $base-color, $link-height: $base-font-size, $align: left) {
+    font-size: $font-size;
+    color: $color;
+    line-height: $link-height;
+    text-align: $align;
+}
+
+@mixin fn-border($border-width: 1px, $border-style: solid, $border-color: $base-color, $border-radius: 0) {
+    border: $border-width $border-style $border-color {
+        radius: $border-radius;
+    }
+}
+
+//
+// 定位
+// ---------------------------------------------------------------------------------
+@mixin fn-relative() {
+    position: relative;
+}
+
+@mixin fn-absolute-mid() {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    -moz-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    -o-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+@mixin fn-absolute-ver() {
+    position: absolute;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -moz-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+@mixin fn-fixed-mid() {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    -moz-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    -o-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+@mixin fn-position-top($position: absolute, $top: 0) {
+    position: $position;
+    top: $top;
+}
+
+@mixin fn-position-bottom($position: absolute, $bottom: 0) {
+    position: $position;
+    bottom: $bottom;
+}
+
+@mixin fn-position-top-left($position: absolute, $top: 0, $left: 0) {
+    @include fn-position-top($position, $top);
+    left: $left;
+}
+
+@mixin fn-position-top-right($position: absolute, $top: 0, $right: 0) {
+    @include fn-position-top($position, $top);
+    right: $right;
+}
+
+@mixin fn-position-bottom-left($position: absolute, $bottom: 0, $left: 0) {
+    @include fn-position-bottom($position, $bottom);
+    left: $left;
+}
+
+@mixin fn-position-bottom-right($position: absolute, $bottom: 0, $right: 0) {
+    @include fn-position-bottom($position, $bottom);
+    right: $right;
+}
+
+@mixin fn-position-all($position: absolute, $top: auto, $right: auto, $bottom: auto, $left: auto) {
+    position: $position;
+    top: $top;
+    right: $right;
+    bottom: $bottom;
+    left: $left;
+}
+
+//
+// 过渡效果
+// ---------------------------------------------------------------------------------
+@mixin fn-transition($property: all, $duration: 0s, $way: ease, $delay: 0s) {
+    -webkit-transition: $property, $duration, $way, $delay;
+    -moz-transition: $property, $duration, $way, $delay;
+    -ms-transition: $property, $duration, $way, $delay;
+    -o-transition: $property, $duration, $way, $delay;
+    transition: $property, $duration, $way, $delay;
+}
+
+//
+// 转换效果
+// ---------------------------------------------------------------------------------
+@mixin fn-transform($x: 0, $y: 0){
+    -webkit-transform: translate($x, $y);
+    -moz-transform: translate($x, $y);
+    -ms-transform: translate($x, $y);
+    -o-transform: translate($x, $y);
+    transform: translate($x, $y);
+}
+
+//
+// 动画
+// ---------------------------------------------------------------------------------
+@mixin fn-animation($name, $duration: 1s, $way: ease, $delay: 0s, $iteration: 1, $direction: normal, $mode: normal){
+    -webkit-animation: $name $duration $way $delay $iteration $direction;
+    -o-animation: $name $duration $way $delay $iteration $direction;
+    animation: $name $duration $way $delay $iteration $direction;
+}

@@ -1,0 +1,162 @@
+<div class="container m-user-ctrl">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="m-search">
+                <input type="text" class="form-control" placeholder="搜索用户" />
+                <span class="glyphicon glyphicon-search" id="btnSearch"></span>
+            </div>
+            <table class="table" id="tableUser">
+                <thead>
+                <tr>
+                    <th>username</th>
+                    <th>password</th>
+                    <th>email</th>
+                    <th>edit</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#each user}}
+                    <tr data-id="{{id}}">
+                        <td>{{name}}</td>
+                        <td>
+                            <b>{{password}}</b>
+                            <input type="text" class="form-control" name="password" value="{{password}}" style="display: none;" required />
+                        </td>
+                        <td>
+                            <b>{{email}}</b>
+                            <input type="text" class="form-control" name="email" value="{{email}}" style="display: none;" />
+                        </td>
+                        <td>
+                            <button class="btn btn-primary btn-edit">edit</button>
+                            <button class="btn btn-success btn-complete" style="display: none;">complete</button>
+                            <button class="btn btn-danger btn-delete">delete</button>
+                        </td>
+                    </tr>
+                {{/each}}
+                </tbody>
+            </table>
+            {{#ifCond user.length 9 '>'}}
+                <button class="btn btn-primary u-btn" id="btnLoadMore">加载更多</button>
+            {{/ifCond}}
+        </div>
+    </div>
+</div>
+{{#section 'jsFiles'}}
+    <script src="{{static '/vendor/md5.min.js'}}"></script>
+{{/section}}
+{{#section 'jquery'}}
+    <script>
+        $(function () {
+            var loadTimes = 1;
+            // 修改用户
+            $('#tableUser').on('click', '.btn-edit', function () {
+                var thisEl = $(this);
+                var parentTr = thisEl.closest('tr');
+                parentTr.find('b').hide();
+                parentTr.find('input').show();
+                thisEl.hide().siblings('.btn-complete').show();
+            });
+            // 完成修改
+            $('#tableUser').on('click', '.btn-complete', function () {
+                var thisEl = $(this);
+                var parentTr = thisEl.closest('tr');
+                var pid = parentTr.attr('data-id');
+                var password = md5(parentTr.find('input[name="password"]').val());
+                var email = parentTr.find('input[name="email"]').val();
+                myToastr('info', {}, '少女祈祷ing...');
+                $.ajax({
+                    url: 'http://' + window.location.host + '/api/user-edit',
+                    method: 'POST',
+                    dataType: 'json',
+                    data: {
+                        id: pid,
+                        password: password,
+                        email: email
+                    },
+                    success: function (data) {
+                        if(data.code == 1){
+                            myToastr('success', {}, '修改成功');
+                            thisEl.hide().siblings('.btn-edit').show();
+                            parentTr.find('b').each(function (i) {
+                                var thisEl = $(this);
+                                i == 0 ? thisEl.text(password).show() : thisEl.text(email).show();
+                                thisEl.siblings('input').hide();
+                            });
+                        } else {
+                            myToastr('error', {}, data.msg);
+                        }
+                    },
+                    error: function () {
+                        myToastr('error', {}, '貌似服务器出现了点问题= =#');
+                    }
+                });
+            });
+            // 删除用户
+            $('#tableUser').on('click', '.btn-delete', function () {
+                var thisEl = $(this);
+                var parentTr =  thisEl.closest('tr');
+                $.ajax({
+                    url: 'http://' + window.location.host + '/api/user-delete/' + parentTr.attr('data-id'),
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        if(data.code == 1){
+                            myToastr('success', {}, '删除成功');
+                            parentTr.remove();
+                        } else {
+                            myToastr('error', {}, data.msg);
+                        }
+                    },
+                    error: function () {
+                        myToastr('error', {}, '貌似服务器出现了点问题= =#');
+                    }
+                });
+            });
+            // 加载更多用户
+            $('#btnLoadMore').on('click', function () {
+                var $this = $(this);
+                $this.text('加载ing...');
+                $.get('/api/load-more-user/' + loadTimes, function (data) {
+                    data.code == 1 ? $('#tableUser').append(newUserList(data.content)) : myToastr('error', {}, data.msg);
+                    data.content.length < 10 ? $this.replaceWith('<p class="u-none-tips">没有用户啦</p>') : $this.text('加载更多');
+                    loadTimes++;
+                }).fail(function () {
+                    myToastr('error', {}, '貌似服务器出现了点问题= =#');
+                    $this.text('加载更多');
+                });
+            });
+            // 搜索用户
+            $('#btnSearch').on('click', function () {
+                $.get('/api/search-user/' + $(this).siblings('input').val(), function (data) {
+                    if(data.code == 0) return alert(data.msg);
+                    $('#btnLoadMore, .u-none-tips').hide();
+                    $('#tableUser').find('tbody').empty().append(newUserList(data.content));
+                }).fail(function () {
+                    myToastr('error', {}, '貌似服务器出现了点问题= =#');
+                });
+            });
+
+            function newUserList(data) {
+                var r =  data.map(function (el) {
+                    return '<tr data-id="' + el._id + '">\
+                                <td>' + el.name + '</td>\
+                                <td>\
+                                    <b>' + el.password + '</b>\
+                                    <input type="text" class="form-control" name="password" value="' + el.password + '" style="display: none;" required />\
+                                </td>\
+                                <td>\
+                                    <b>' + el.email + '</b>\
+                                    <input type="text" class="form-control" name="email" value="' + el.email + '" style="display: none;" />\
+                                </td>\
+                                <td>\
+                                    <button class="btn btn-primary btn-edit">edit</button>\
+                                    <button class="btn btn-success btn-complete" style="display: none;">complete</button>\
+                                    <button class="btn btn-danger btn-delete">delete</button>\
+                                </td>\
+                            </tr>'
+                });
+                return r.join('');
+            }
+        });
+    </script>
+{{/section}}

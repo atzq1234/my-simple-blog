@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+    <title>{{title}}</title>
+    <link rel="shortcut icon" href="{{static '/images/kato.ico'}}">
+    <link rel="stylesheet" href="{{static '/vendor/bootstrap-3.3.5/css/bootstrap.min.css'}}"/>
+    <link rel="stylesheet" href="{{static '/vendor/nprogress-0.2.0/nprogress.css'}}"/>
+    <link rel="stylesheet" href="{{static '/vendor/toastr/toastr.min.css'}}" />
+    {{{_sections.cssFiles}}}
+    <link rel="stylesheet" href="{{static '/stylesheets/main.css'}}"/>
+    {{#if showTests}}
+        <link rel="stylesheet" href="{{static '/vendor/tester/mocha.css'}}"/>
+    {{/if}}
+</head>
+<body>
+{{> header}}
+<!-- 内容 -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-2">
+            {{> sidebarleft}}
+        </div>
+        <div class="col-xs-8">
+            {{{body}}}
+        </div>
+        <div class="col-xs-2"></div>
+    </div>
+</div>
+{{> modal}}
+{{> totop}}
+<script src="{{static '/vendor/nprogress-0.2.0/nprogress.js'}}"></script>
+<script>
+    NProgress.configure({easing: 'ease', speed: 500, trickleRate: 0.1});
+    NProgress.start();
+    NProgress.set(0.5);
+</script>
+<script src="{{static '/vendor/jquery-2.1.3.min.js'}}"></script>
+<script src="{{static '/vendor/bootstrap-3.3.5/js/bootstrap.min.js'}}"></script>
+<script src="{{static '/vendor/md5.min.js'}}"></script>
+<script src="{{static '/vendor/toastr/toastr.min.js'}}"></script>
+{{{_sections.jsFiles}}}
+<script src="{{static '/js/main.js'}}"></script>
+{{{_sections.jquery}}}
+<script>
+    $(function () {
+        // 登录
+        $('#btnLogin').on('click', function (e) {
+            e.preventDefault();
+            var formLogin = $('#formLogin');
+            var name = formLogin.find('input[type="text"]').val();
+            var pwd = md5(formLogin.find('input[type="password"]').val());
+            if (name == '' || pwd == '') return alert('表单不能为空');
+            myToastr('info', {timeOut: 0}, '少女祈祷中...');
+            $.ajax({
+                url: 'http://' + window.location.host + '/api/login',
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    name: name,
+                    password: pwd
+                },
+                success: function (data) {
+                    if (data.code == 1) {
+                        myToastr('success', {}, '登录成功');
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        myToastr('error', {}, data.msg);
+                    }
+
+                },
+                error: function () {
+                    myToastr('error', {}, '服务器貌似出现了问题= = #');
+                }
+            })
+
+        });
+        // 登出
+        $('#btnSignUp').on('click', function () {
+            $.ajax({
+                url: 'http://' + window.location.host + '/api/signup',
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.code == 1) window.location.reload();
+                },
+                error: function () {
+                    myToastr('error', {}, '服务器貌似出现了问题= = #');
+                }
+            });
+        });
+        // 注册
+        $('#btnRegister').on('click', function () {
+            var formRegister = $('#formRegister');
+            var name = formRegister.find('input[name="username"]').val();
+            var pwd = md5(formRegister.find('input[name="password"]').val());
+            var email = formRegister.find('input[name="email"]').val();
+            if (name == '' || pwd == '') return myToastr('error', {}, '用户名或密码不能为空');
+            if(email != ''){
+                var patten = /^(\w)+(\.\w+)*@(\w)+((\.\w+)+)$/;
+                if(!patten.test(email)) return myToastr('error', {}, '请输入正确的邮箱喔~');
+            }
+            $.ajax({
+                url: 'http://' + window.location.host + '/api/register',
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    name: name,
+                    password: pwd,
+                    email: email
+                },
+                success: function (data) {
+                    if (data.code == 1) {
+                        myToastr('success', {}, '注册成功!');
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        myToastr('error', {}, data.msg);
+                    }
+                },
+                error: function () {
+                    myToastr('error', {}, '服务器貌似出现了问题= = #');
+                }
+            })
+        });
+        // 搜索
+        $('#btnSearch').on('click', function () {
+            $(this).next('input[type="submit"]').click();
+        });
+        // 导航条滚动后定位, 返回顶部显示
+        window.addEventListener('scroll', windowScroll(scrollHandler, 200), false);
+        // 返回顶部
+        $('#btnToTop').on('click', function () {
+            $('html,body').animate({scrollTop: 0}, 400);
+        });
+    });
+    NProgress.done();
+</script>
+
+
+{{! 测试页面 }}
+{{#if showTests}}
+    <div id="mocha"></div>
+    <script src="{{static '/vendor/tester/mocha.js'}}"></script>
+    <script src="{{static '/vendor/tester/chai.js'}}"></script>
+    <script>
+        mocha.ui('tdd');
+        var assert = chai.assert;
+    </script>
+    <scrpit src="{{static '/qa/tests-global.js'}}"></scrpit>
+    {{#if pageTestScript}}
+        <script src="{{pageTestScript}}"></script>
+    {{/if}}
+    <script>mocha.run();</script>
+{{/if}}
+</body>
+</html>

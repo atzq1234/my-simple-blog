@@ -1,0 +1,206 @@
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12">
+            <ul class="nav nav-tabs m-nav-article" id="tabArticle">
+                <li class="active"><a href="javascript:;">文章列表</a></li>
+                <li><a href="javascript:;">发表文章</a></li>
+            </ul>
+        </div>
+        <div class="col-xs-12 m-table-article" id="tableArticle">
+            <div class="m-search">
+                <input type="text" class="form-control" placeholder="搜索文章..." />
+                <span class="glyphicon glyphicon-search" id="btnSearch"></span>
+            </div>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>标题</th>
+                    <th>文章类型</th>
+                    <th>发表时间</th>
+                    <th>文章描述</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#each articles}}
+                    <tr data-id="{{_id}}">
+                        <td class="title-article">{{title}}</td>
+                        <td>{{articleType}}</td>
+                        <td>{{formatDate}}</td>
+                        <td>{{description}}</td>
+                        <td>
+                            <button class="btn btn-primary btn-edit">编辑</button>
+                            <button class="btn btn-danger btn-delete">删除</button>
+                        </td>
+                    </tr>
+                {{/each}}
+                </tbody>
+            </table>
+            {{#ifCond articles.length 9 '>'}}
+                <button class="btn btn-primary u-btn" id="btnLoadMore">加载更多</button>
+            {{/ifCond}}
+        </div>
+        <div class="col-xs-12 m-article-publish" style="display: none;" id="articlePublish">
+            <form action="/api/article-publish" method="post">
+                <div class="form-group">
+                    <label for="title">标题</label>
+                    <input type="text" class="form-control" name="title" placeholder="标题" required/>
+                </div>
+                <div class="form-group">
+                    <label for="author">作者</label>
+                    <input type="text" class="form-control" name="author" placeholder="作者" value="{{author}}"
+                           required/>
+                </div>
+                <div class="form-group">
+                    <label for="date">时间</label>
+                    <input type="text" class="form-control" name="date" placeholder="时间" value="{{formatDate}}"
+                           required/>
+                </div>
+                <div class="form-group">
+                    <label for="description">文章描述</label>
+                    <input type="text" class="form-control" name="description" placeholder="文章描述" required/>
+                </div>
+                <div class="form-group">
+                    <label for="articleType">文章类别</label>
+                    <p>
+                        {{#each articleTypes}}
+                            <span>
+                                <button class="btn btn-default btn-article-type {{#ifCond . 'javascript' '=='}}btn-danger{{/ifCond}}">{{.}}</button>
+                                <input type="radio" name="articleType" value="{{.}}"
+                                       {{#ifCond . 'javascript' '=='}}checked{{/ifCond}}/>
+                            </span>
+                        {{/each}}
+                    </p>
+                </div>
+                <div class="form-group">
+                    <label for="content">文章内容</label>
+                    <textarea name="content" id="articleContent" class="form-control" placeholder="文章内容"
+                              style="resize: none;" required></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Submit!</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{{#section 'cssFiles'}}
+    <link rel="stylesheet" href="{{static '/vendor/markdown/monokai-sublime.css'}}"/>
+    <link rel="stylesheet" href="{{static '/vendor/markdown/bootstrap-markdown-editor.css'}}"/>
+{{/section}}
+{{#section 'jsFiles'}}
+    <script src="{{static '/vendor/markdown/marked.js'}}"></script>
+    <script src="{{static '/vendor/markdown/highlight.js'}}"></script>
+    <script src="{{cloudflare '/ace/1.1.3/ace.js'}}"></script>
+    <script src="{{static '/vendor/markdown/bootstrap-markdown-editor.js'}}"></script>
+{{/section}}
+{{#section 'jquery'}}
+    <script>
+        $(function () {
+            var loadTimes = 1;
+            // 管理文章tab
+            $('#tabArticle li').on('click', function () {
+                var thisEl = $(this);
+                thisEl.closest('ul').children('li').removeClass('active');
+                thisEl.addClass('active');
+                switch (thisEl.index()) {
+                    case 0:
+                        $('#articlePublish').hide();
+                        $('#tableArticle').fadeIn();
+                        break;
+                    case 1:
+                        $('#articlePublish').fadeIn();
+                        $('#tableArticle').hide();
+                        break;
+                    default:
+                        break;
+                }
+            });
+            // 文章table的事件
+            $('#tableArticle')
+                    .on('click', '.title-article', function () {    // 点击title列表跳转到对应文章
+                        window.open('http://' + window.location.host + '/article/' + $(this).parent().attr('data-id'));
+                    })
+                    .on('click', '.btn-edit', function () {   // 编辑文章
+                        window.location.href = 'http://' + window.location.host + '/admin/ctrl-article-edit/' + $(this).closest('tr').attr('data-id');
+                    })
+                    .on('click', '.btn-delete', function () {// 删除文章
+                        var parentTr = $(this).closest('tr');
+                        myToastr('info', {}, '少女祈祷中...');
+                        $.ajax({
+                            url: 'http://' + window.location.host + '/api/article-delete/' + parentTr.attr('data-id'),
+                            method: 'GET',
+                            dataType: 'json',
+                            success: function (data) {
+                                if (data.code == 1) {
+                                    myToastr('success', {}, '删除成功!');
+                                    parentTr.remove();
+                                } else {
+                                    myToastr('error', {}, data.msg);
+                                }
+                            },
+                            error: function () {
+                                myToastr('error', {}, '貌似服务器出现了点问题= =#');
+                            }
+                        });
+                    });
+            // markdown编辑器
+            $('#articleContent').markdownEditor({
+                preview: true,
+                onPreview: function (content, callback) {
+                    callback(marked(content));
+                    $('.md-preview pre code').each(function (i, el) {
+                        hljs.highlightBlock(el);
+                    });
+                }
+            });
+            // 选择文章类别
+            $('.btn-article-type').on('click', function (e) {
+                e.preventDefault();
+                $('.btn-article-type').removeClass('btn-danger');
+                $(this).addClass('btn-danger').siblings('input').click();
+            });
+            // 加载更多文章
+            $('#btnLoadMore').on('click', function () {
+                var thisEl = $(this);
+                thisEl.text('加载ing...');
+                $.get('/api/load-more-article/' + loadTimes, function (data) {
+                    data.code == 1 ? $('#tableArticle tbody').append(newArticleTableList(data.content)) : myToastr('error', {}, data.msg);;
+                    data.content.length < 10 ? thisEl.replaceWith('<p class="u-none-tips">没有文章咯</p>') : thisEl.text('加载更多');
+                    loadTimes++;
+                }).fail(function () {
+                    myToastr('error', {}, '貌似服务器出现了点问题= =#');
+                    thisEl.text('加载更多');
+                });
+            });
+            // 搜索文章
+            $('#btnSearch').on('click', function () {
+                $.get('/api/search-article/' + $(this).siblings('input').val(), function (data) {
+                    if(data.code == 0) return alert(data.msg);
+                    $('#btnLoadMore, .u-none-tips').hide();
+                    $('#tableArticle').find('tbody').empty().append(newArticleTableList(data.content));
+                });
+            });
+            // 自动关闭会话提示
+            if ($('#sessionTips')) setTimeout(function () {
+                $('#sessionTips').fadeOut();
+            }, 5000);
+
+
+            function newArticleTableList(data) {
+                var r = data.map(function (el) {
+                    var articleDate = new Date(el.date),
+                            formatDate = articleDate.getFullYear() + '-' + (articleDate.getMonth() + 1) + '-' + articleDate.getDate();
+                    return '<tr data-id="' + el._id
+                            + '"><td class="title-article">'
+                            + el.title + '</td><td>' + el.articleType
+                            + '</td><td>' + formatDate
+                            + '</td><td>' + el.description
+                            + '</td><td><button class="btn btn-primary btn-edit">编辑</button>\n<button class="btn btn-danger btn-delete">删除</button></td></tr>'
+                });
+                return r.join('');
+            }
+        });
+    </script>
+{{/section}}
