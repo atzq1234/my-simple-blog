@@ -35,10 +35,14 @@ module.exports = {
 5. Start the blog trip
 > node app.js
 
+## Login by administrator
+By default, you can login by administrator through username: `admin`, password: `admin`
+
 ## About Grunt Task
 - I config a **dev task** after run the command `grunt dev` in the terminal , you can see the blog page changed when you press `ctrl` + `s` in `.handlebars` or `.scss`(now `F5` is free!!! =. =), **noted that you should install Ruby and Sass before you run this task**
 - I also config a **test task** to test some API, but just some simple tests =. =
 
 ### Here is the old demo ;)
 you can see old the **"demo"** by [http://aijiang.ml/](http://aijiang.ml/) 
+<br />
 Althrough it is really simple blog, I quite enjoy the process, so just have fun!!
